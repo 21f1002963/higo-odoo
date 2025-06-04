@@ -1,119 +1,52 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation'; // Corrected import
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-// Define the shape of the user object
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  // Add other relevant user properties
-}
-
-// Define the shape of the AuthContext
 interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  signIn: (token: string, userData: User) => Promise<void>;
-  signOut: () => void;
-  // verifyOtp: (otp: string) => Promise<boolean>; // Example for OTP verification
+  // Define app-specific auth state or user profile data here if needed
+  // For now, let's assume a simple isAuthenticated or user object might go here
+  // This can be expanded based on what's not covered by Clerk
+  appUser: any | null; // Placeholder for app-specific user data
+  setAppUser: (user: any | null) => void; // Kept for direct manipulation if needed, though signIn/signOut are preferred
+  signIn: (userData: any) => void; // Function to handle user sign-in
+  signOut: () => void; // Function to handle user sign-out
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [appUser, setAppUser] = useState<any | null>(null);
 
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedToken = localStorage.getItem('jwtToken');
-      // TODO: Add a call to a backend endpoint (e.g., /api/auth/me) to validate the token
-      // and fetch user data if the token is valid.
-      // For now, we'll just set the token if it exists.
-      // If the token is invalid or expired, the backend should reject it,
-      // and we should clear it from localStorage.
-
-      if (storedToken) {
-        setToken(storedToken);
-        // Placeholder for fetching user data based on token
-        // For example:
-        // try {
-        //   const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${storedToken}` }});
-        //   if (res.ok) {
-        //     const userData = await res.json();
-        //     setUser(userData);
-        //   } else {
-        //     localStorage.removeItem('jwtToken');
-        //     setToken(null);
-        //     setUser(null);
-        //   }
-        // } catch (error) {
-        //   console.error("Failed to fetch user data", error);
-        //   localStorage.removeItem('jwtToken');
-        //   setToken(null);
-        //   setUser(null);
-        // }
-        // For demonstration, let's assume the token itself contains enough info or we mock user
-        // In a real app, you MUST verify the token with the backend and get user details.
-        // For now, if a token exists, we'll try to parse it (if it's a JWT with user data)
-        // or fetch user data. This part is highly dependent on your JWT structure.
-        // For simplicity, we'll set a placeholder user if a token is found.
-        // This is NOT secure for a real application.
-        try {
-          // Attempt to decode token to get basic info (e.g., expiry).
-          // This is just for client-side convenience and not a security measure.
-          // const decodedToken = JSON.parse(atob(storedToken.split('.')[1])); // Basic decode
-          // if (decodedToken.exp * 1000 < Date.now()) {
-          //   localStorage.removeItem('jwtToken');
-          //   setToken(null);
-          //   setUser(null);
-          // } else {
-          //   // setUser(decodedToken.user || { id: decodedToken.sub, username: 'User' }); // Example
-          //   // Fetch user from backend using the token
-          // }
-        } catch (e) {
-          // console.error("Invalid token:", e);
-          // localStorage.removeItem('jwtToken');
-          // setToken(null);
-          // setUser(null);
-        }
-      }
-      setIsLoading(false);
-    };
-    initializeAuth();
-  }, []);
-
-  const signIn = async (newToken: string, userData: User) => {
-    setIsLoading(true);
-    localStorage.setItem('jwtToken', newToken);
-    setToken(newToken);
-    setUser(userData);
-    setIsLoading(false);
-    // router.push('/dashboard'); // Redirect after sign-in
+  // Placeholder signIn function
+  const signIn = (userData: any) => {
+    // In a real app, you would typically call your backend to authenticate
+    // and then set the user data upon successful authentication.
+    // You might also store a token (e.g., JWT) in localStorage/sessionStorage.
+    console.log("AuthContext: Signing in user", userData);
+    setAppUser(userData);
+    // Example: router.push('/dashboard'); (if using next/navigation)
   };
 
+  // Placeholder signOut function
   const signOut = () => {
-    setIsLoading(true);
-    localStorage.removeItem('jwtToken');
-    setToken(null);
-    setUser(null);
-    setIsLoading(false);
-    router.push('/sign-in');
+    // In a real app, you would call your backend to invalidate the session/token
+    // and clear any stored tokens.
+    console.log("AuthContext: Signing out user");
+    setAppUser(null);
+    // Example: router.push('/login'); (if using next/navigation)
   };
+
+  // Logic to fetch and set app-specific user data can be added here,
+  // potentially interacting with the /api/users/me endpoint after successful signIn.
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ appUser, setAppUser, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

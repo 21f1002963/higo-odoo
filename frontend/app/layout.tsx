@@ -9,8 +9,8 @@ import { AuthProvider } from "@/contexts/AuthContext"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "EcoFinds - Sustainable Second-Hand Shopping",
-  description: "Buy and sell second-hand items to reduce waste and promote sustainability.",
+  title: "EcoFinds - Sustainable Second-Hand Marketplace",
+  description: "EcoFinds – Empowering Sustainable Consumption Through a Second-Hand Marketplace",
   generator: 'v0.dev'
 }
 
@@ -20,27 +20,27 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-      <html lang="en">
+    <AuthProvider>
+      <html lang="en" suppressHydrationWarning>
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
         </head>
-        <body className={inter.className}>
-          <AuthProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-              <div className="relative flex min-h-screen flex-col">
-                <Navbar />
-                <main className="flex-1">{children}</main>
-                <footer className="border-t py-6 md:py-0">
-                  <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-                    <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-                      © 2023 EcoFinds. All rights reserved.
-                    </p>
-                  </div>
-                </footer>
-              </div>
-            </ThemeProvider>
-          </AuthProvider>
+        <body className={`${inter.className} antialiased`}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <div className="relative flex min-h-screen flex-col bg-background">
+              <Navbar />
+              <main className="flex-1 py-6 md:py-10">{children}</main>
+              <footer className="border-t py-6 md:py-8">
+                <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
+                  <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+                    © {new Date().getFullYear()} EcoFinds. All rights reserved.
+                  </p>
+                </div>
+              </footer>
+            </div>
+          </ThemeProvider>
         </body>
       </html>
+    </AuthProvider>
   )
 }

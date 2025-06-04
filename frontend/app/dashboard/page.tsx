@@ -1,203 +1,170 @@
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { Package, ShoppingBag, PlusCircle } from "lucide-react"
-import { auth } from "@clerk/nextjs/server"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { connectToDatabase } from "@/lib/mongodb"
-import User from "@/models/User"
-import Product from "@/models/Product"
-import Order from "@/models/Order"
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+// import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ListOrdered, LayoutList, Star, MessageSquare, Heart, Settings, ShieldAlert, ShoppingBag, Edit2 } from 'lucide-react';
 
-async function getUserListings(userId: string) {
-  try {
-    await connectToDatabase()
-
-    const user = await User.findOne({ clerkId: userId })
-
-    if (!user) {
-      return []
-    }
-
-    const listings = await Product.find({ seller: user._id }).sort({ createdAt: -1 })
-    return listings
-  } catch (error) {
-    console.error("Error loading listings:", error)
-    return []
-  }
+// Placeholder for app-specific user data type
+interface AppUserProfile {
+  username?: string; // Added for consistency with API doc
+  email?: string; // Added for consistency
+  profilePictureUrl?: string; // Added for consistency
+  firstName?: string; // Added for consistency
+  lastName?: string; // Added for consistency
+  location?: string;
+  aboutMe?: string;
+  communicationPreferences?: {
+    emailNotifications?: boolean;
+    smsNotifications?: boolean;
+    pushNotifications?: boolean;
+  };
+  preferredLanguage?: string;
+  sellerRating?: number;
+  // Add other fields from API_DOCUMENTATION.md section 1.1
 }
 
-async function getUserOrders(userId: string) {
-  try {
-    await connectToDatabase()
+// Placeholder components for dashboard sections - can be moved to separate files later
+const MyListings = () => <Card><CardHeader><CardTitle>My Listings</CardTitle></CardHeader><CardContent><p>List of user's active and past product listings. (CRUD operations for listings)</p></CardContent></Card>;
+const MyPurchases = () => <Card><CardHeader><CardTitle>My Purchases</CardTitle></CardHeader><CardContent><p>History of items purchased by the user.</p></CardContent></Card>;
+const SavedItems = () => <Card><CardHeader><CardTitle>Saved Items / Watchlist</CardTitle></CardHeader><CardContent><p>Items saved or watched by the user. (Price alerts)</p></CardContent></Card>;
+const Messages = () => <Card><CardHeader><CardTitle>Messages</CardTitle></CardHeader><CardContent><p>User's chat conversations.</p></CardContent></Card>;
+const ReviewsRatings = () => <Card><CardHeader><CardTitle>My Reviews & Ratings</CardTitle></CardHeader><CardContent><p>Reviews given and received by the user.</p></CardContent></Card>;
+const MyDisputes = () => <Card><CardHeader><CardTitle>My Disputes</CardTitle></CardHeader><CardContent><p>History of disputes/complaints filed by or against the user.</p></CardContent></Card>;
 
-    const user = await User.findOne({ clerkId: userId })
+// Updated AccountSettings to only use appUserProfile
+const AccountSettings = ({ profile }: { profile: AppUserProfile | null }) => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Account Settings</CardTitle>
+      <CardDescription>Manage your profile and preferences.</CardDescription>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      {/* Removed Clerk Profile section */}
+      <h3 className="font-semibold mt-0">EcoFinds Profile:</h3>
+      <p>Username: {profile?.username || <span className="text-muted-foreground">N/A</span>}</p>
+      <p>Email: {profile?.email || <span className="text-muted-foreground">N/A</span>}</p>
+      <p>First Name: {profile?.firstName || <span className="text-muted-foreground">N/A</span>}</p>
+      <p>Last Name: {profile?.lastName || <span className="text-muted-foreground">N/A</span>}</p>
+      <p>Location: {profile?.location || <span className="text-muted-foreground">Not set</span>}</p>
+      <p>About Me: {profile?.aboutMe || <span className="text-muted-foreground">Not set</span>}</p>
+      <p>Preferred Language: {profile?.preferredLanguage || <span className="text-muted-foreground">Not set</span>}</p>
+      {/* TODO: Add form to edit these app-specific fields -> PUT /api/users/me */}
+      <Button variant="outline"><Edit2 className="w-4 h-4 mr-2" />Edit EcoFinds Profile</Button>
+    </CardContent>
+  </Card>
+);
 
-    if (!user) {
-      return []
+
+export default function DashboardPage() {
+  const { appUser } = useAuth(); // Get appUser from AuthContext
+  const [appUserProfile, setAppUserProfile] = useState<AppUserProfile | null>(null);
+  const [isLoadingAppProfile, setIsLoadingAppProfile] = useState(true);
+
+  useEffect(() => {
+    // Fetch app-specific profile if appUser exists (i.e., user is logged in)
+    if (appUser) { 
+      const fetchAppUserProfile = async () => {
+        setIsLoadingAppProfile(true);
+        try {
+          // TODO: Replace with actual API call to GET /api/users/me
+          // This API should be protected and use the auth token from the user's session
+          // For example: const response = await fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${appUser.token}` } });
+          // if (!response.ok) throw new Error('Failed to fetch app user profile');
+          // const data = await response.json();
+          // setAppUserProfile(data);
+
+          // Mock data for now, assuming appUser from context might be minimal (e.g. id, email, token)
+          // and appUserProfile is the more detailed profile from /users/me.
+          await new Promise(resolve => setTimeout(resolve, 500));
+          setAppUserProfile({
+            username: appUser.username || "EcoUser123", // Use username from context if available
+            email: appUser.email || "user@example.com", // Use email from context if available
+            firstName: appUser.firstName || "Eco",
+            lastName: appUser.lastName || "User",
+            profilePictureUrl: appUser.profilePictureUrl || undefined,
+            location: "New York, USA",
+            aboutMe: "Loves sustainable products and finding unique items!",
+            preferredLanguage: "en",
+            sellerRating: 4.7
+          });
+
+        } catch (error) {
+          console.error("Error fetching app user profile:", error);
+          setAppUserProfile(null); 
+        } finally {
+          setIsLoadingAppProfile(false);
+        }
+      };
+      fetchAppUserProfile();
+    } else {
+      // Not signed in or appUser not available from context
+      setIsLoadingAppProfile(false); // Not loading if no user to load for
+      setAppUserProfile(null); // Ensure profile is cleared if user logs out
     }
+  }, [appUser]); // Depend on appUser from context
 
-    const orders = await Order.find({ user: user._id })
-      .populate({
-        path: "items.product",
-        select: "title images",
-      })
-      .sort({ createdAt: -1 })
-
-    return orders
-  } catch (error) {
-    console.error("Error loading orders:", error)
-    return []
-  }
-}
-
-export default async function DashboardPage() {
-  const { userId } = auth()
-
-  if (!userId) {
-    redirect("/login")
+  // Updated loading state
+  if (isLoadingAppProfile && appUser) { // Only show loading if we have a user and are fetching their profile
+    return <div className="container mx-auto px-4 py-8 text-center">Loading Dashboard...</div>;
   }
 
-  const [listings, orders] = await Promise.all([getUserListings(userId), getUserOrders(userId)])
+  // If no appUser (not logged in), redirect or show message
+  // This might be handled by middleware or a Higher Order Component for protected routes too.
+  if (!appUser) {
+    return <div className="container mx-auto px-4 py-8 text-center">Please sign in to view your dashboard.</div>;
+  }
+  
+  // Use appUserProfile for display, fallback to appUser from context for some fields if needed
+  const displayUser = appUserProfile || appUser; 
+
+  const getInitials = (firstName?: string, lastName?: string, username?: string) => {
+    if (firstName && lastName) return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    if (firstName) return `${firstName[0]}`.toUpperCase();
+    if (username) return username.substring(0,2).toUpperCase();
+    return "U";
+  }
 
   return (
-    <div className="container py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Manage your listings and view your purchase history</p>
+    <div className="container mx-auto px-4 py-8">
+      <header className="mb-8">
+        <div className="flex items-center space-x-4 mb-4">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={displayUser?.profilePictureUrl} alt={displayUser?.username || "User"} />
+            <AvatarFallback>{getInitials(displayUser?.firstName, displayUser?.lastName, displayUser?.username)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-3xl font-bold">Welcome, {displayUser?.firstName || displayUser?.username || 'User'}!</h1>
+            <p className="text-muted-foreground">Manage your EcoFinds account and activities.</p>
+          </div>
         </div>
-        <Button asChild>
-          <Link href="/products/new">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add New Product
-          </Link>
-        </Button>
-      </div>
+      </header>
 
-      <div className="grid gap-8">
-        <Tabs defaultValue="listings">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="listings">My Listings</TabsTrigger>
-            <TabsTrigger value="purchases">My Purchases</TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="listings" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-7 mb-6">
+          <TabsTrigger value="listings"><LayoutList className="w-4 h-4 mr-2 sm:hidden md:inline-block"/>My Listings</TabsTrigger>
+          <TabsTrigger value="purchases"><ShoppingBag className="w-4 h-4 mr-2 sm:hidden md:inline-block"/>Purchases</TabsTrigger>
+          <TabsTrigger value="saved"><Heart className="w-4 h-4 mr-2 sm:hidden md:inline-block"/>Saved Items</TabsTrigger>
+          <TabsTrigger value="messages"><MessageSquare className="w-4 h-4 mr-2 sm:hidden md:inline-block"/>Messages</TabsTrigger>
+          <TabsTrigger value="reviews"><Star className="w-4 h-4 mr-2 sm:hidden md:inline-block"/>Reviews</TabsTrigger>
+          <TabsTrigger value="disputes"><ShieldAlert className="w-4 h-4 mr-2 sm:hidden md:inline-block"/>Disputes</TabsTrigger>
+          <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-2 sm:hidden md:inline-block"/>Settings</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="listings" className="space-y-4">
-            {listings && listings.length > 0 ? (
-              <div className="grid gap-4">
-                {listings.map((listing: any) => (
-                  <Card key={listing._id}>
-                    <CardContent className="p-0">
-                      <div className="flex items-center gap-4 p-4">
-                        <div className="relative h-20 w-20 overflow-hidden rounded-md">
-                          <Image
-                            src={listing.images[0] || "/placeholder.svg?height=80&width=80"}
-                            alt={listing.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <h3 className="font-medium">{listing.title}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            ${listing.price.toFixed(2)} · {listing.category} · {listing.condition}
-                          </p>
-                          <p className="text-sm text-muted-foreground">Quantity: {listing.quantity}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/products/${listing._id}`}>View</Link>
-                          </Button>
-                          <Button asChild size="sm">
-                            <Link href={`/products/${listing._id}/edit`}>Edit</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardHeader className="text-center">
-                  <Package className="w-12 h-12 mx-auto text-muted-foreground" />
-                  <CardTitle>No Listings Yet</CardTitle>
-                  <CardDescription>You haven&apos;t listed any products for sale yet.</CardDescription>
-                </CardHeader>
-                <CardContent className="flex justify-center">
-                  <Button asChild>
-                    <Link href="/products/new">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add New Product
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="purchases" className="space-y-4">
-            {orders && orders.length > 0 ? (
-              <div className="grid gap-4">
-                {orders.map((order: any) => (
-                  <Card key={order._id}>
-                    <CardHeader>
-                      <div className="flex justify-between">
-                        <CardTitle className="text-lg">Order #{order._id.slice(-6)}</CardTitle>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <CardDescription>
-                        Status: <span className="font-medium">{order.status}</span> · Total:{" "}
-                        <span className="font-medium">${order.totalAmount.toFixed(2)}</span>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid gap-4">
-                        {order.items.map((item: any, index: number) => (
-                          <div key={index} className="flex items-center gap-4">
-                            <div className="relative h-16 w-16 overflow-hidden rounded-md">
-                              <Image
-                                src={item.product.images?.[0] || "/placeholder.svg?height=64&width=64"}
-                                alt={item.product.title}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium">{item.product.title}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                ${item.price.toFixed(2)} × {item.quantity}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardHeader className="text-center">
-                  <ShoppingBag className="w-12 h-12 mx-auto text-muted-foreground" />
-                  <CardTitle>No Purchases Yet</CardTitle>
-                  <CardDescription>You haven&apos;t made any purchases yet.</CardDescription>
-                </CardHeader>
-                <CardContent className="flex justify-center">
-                  <Button asChild>
-                    <Link href="/products/browse">Browse Products</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="listings"><MyListings /></TabsContent>
+        <TabsContent value="purchases"><MyPurchases /></TabsContent>
+        <TabsContent value="saved"><SavedItems /></TabsContent>
+        <TabsContent value="messages"><Messages /></TabsContent>
+        <TabsContent value="reviews"><ReviewsRatings /></TabsContent>
+        <TabsContent value="disputes"><MyDisputes /></TabsContent>
+        {/* Pass the fetched appUserProfile to AccountSettings */} 
+        <TabsContent value="settings"><AccountSettings profile={appUserProfile} /></TabsContent>
+      </Tabs>
     </div>
-  )
+  );
 }

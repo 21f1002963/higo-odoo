@@ -1,22 +1,20 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-//
-// This function can be marked `async` if using `await` inside
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
 export function middleware(request: NextRequest) {
-  // console.log('Middleware triggered for:', request.nextUrl.pathname);
-  return NextResponse.next()
+  // Currently, this is a pass-through middleware.
+  // Add any custom middleware logic here if needed in the future
+  // (e.g., checking for a custom auth token).
+  return NextResponse.next();
 }
-// Middleware is a way to run code before a request is completed.
-// See "Matching Paths" below to learn more
+
 export const config = {
+  // Protects all routes, including api/trpc.
+  // See https://clerk.com/docs/references/nextjs/auth-middleware
+  // for more information about configuring your Middleware
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    "/((?!.+\\.[\w]+$|_next).*)", // Match all routes except static files and _next internals
+    "/", // Match the root route explicitly
+    "/(api|trpc)(.*)" // Match all API routes
   ],
-}
+};

@@ -3,12 +3,11 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, Search, ShoppingCart, Menu, Package, PlusCircle, UserCircle, LogIn, UserPlus, LogOut, Loader2 } from "lucide-react" // Added LogOut and Loader2
+import { Home, Search, ShoppingCart, Menu, Package, PlusCircle, UserCircle, LogIn, UserPlus, LogOut, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,8 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export default function Navbar() {
-  const { user, signOut, isLoading } = useAuth();
-  const isSignedIn = !!user; // Determine signed-in status from user object
+  const { appUser, signOut } = useAuth(); // Use appUser and new signOut
+  const isSignedIn = !!appUser; // Determine signed-in status from appUser
 
   const pathname = usePathname();
   const router = useRouter();
@@ -30,8 +29,9 @@ export default function Navbar() {
   const handleSignOut = async () => {
     setIsLoggingOut(true);
     try {
-      await signOut();
-      // signOut already redirects to /sign-in, so no need for router.push here
+      signOut(); // Call signOut from AuthContext (can be async or not depending on its new impl)
+      // Optionally, redirect after sign out if not handled by AuthContext's signOut
+      // router.push('/login'); 
     } catch (error) {
       console.error("Logout failed", error);
       // Optionally show a toast message for logout failure
@@ -40,27 +40,7 @@ export default function Navbar() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-8 lg:hidden" /> 
-            <Skeleton className="h-6 w-24" /> 
-          </div>
-          <div className="hidden md:flex items-center gap-6">
-            <Skeleton className="h-5 w-16" />
-            <Skeleton className="h-5 w-16" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-8" />
-            <Skeleton className="h-8 w-8" />
-            <Skeleton className="h-8 w-20" />
-          </div>
-        </div>
-      </header>
-    );
-  }
+  // Clerk-based isLoading and Skeleton loader section has been removed.
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -99,12 +79,12 @@ export default function Navbar() {
                         <span>Dashboard</span>
                       </Link>
                       <Link
-                        href="/products/new"
+                        href="/sell" 
                         className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                         onClick={() => setIsOpen(false)}
                       >
                         <PlusCircle className="h-5 w-5" />
-                        <span>Add Product</span>
+                        <span>Sell Item</span>
                       </Link>
                       <Link
                         href="/cart"
@@ -131,7 +111,7 @@ export default function Navbar() {
                   ) : (
                     <>
                       <Link
-                        href="/sign-in"
+                        href="/login" // Changed from /sign-in
                         className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                         onClick={() => setIsOpen(false)}
                       >
@@ -139,7 +119,7 @@ export default function Navbar() {
                         <span>Sign In</span>
                       </Link>
                       <Link
-                        href="/sign-up"
+                        href="/register" // Changed from /sign-up
                         className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                         onClick={() => setIsOpen(false)}
                       >
@@ -174,10 +154,10 @@ export default function Navbar() {
           </Link>
           {isSignedIn && (
             <Link
-              href="/products/new"
-              className={`text-sm font-medium ${pathname === "/products/new" ? "text-foreground" : "text-muted-foreground"} hover:text-foreground`}
+              href="/sell" 
+              className={`text-sm font-medium ${pathname === "/sell" ? "text-foreground" : "text-muted-foreground"} hover:text-foreground`}
             >
-              Add Product
+              Sell Item
             </Link>
           )}
         </div>
@@ -199,7 +179,7 @@ export default function Navbar() {
             </Link>
           )}
 
-          {isSignedIn && user ? (
+          {isSignedIn && appUser ? ( 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" disabled={isLoggingOut}>
@@ -208,7 +188,7 @@ export default function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user.username || user.email}</DropdownMenuLabel>
+                <DropdownMenuLabel>{appUser.username || appUser.email || 'User'}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push('/dashboard')}>
                   <UserCircle className="mr-2 h-4 w-4" />
@@ -226,12 +206,12 @@ export default function Navbar() {
             </DropdownMenu>
           ) : (
             <>
-              <Link href="/sign-in" passHref>
+              <Link href="/login" passHref> 
                 <Button variant="default" size="sm" disabled={isLoggingOut}>
                   Sign In
                 </Button>
               </Link>
-               <Link href="/sign-up" passHref className="ml-2">
+               <Link href="/register" passHref className="ml-2"> 
                 <Button variant="outline" size="sm" disabled={isLoggingOut}>
                   Sign Up
                 </Button>
