@@ -159,4 +159,9 @@ ProductSchema.pre<IProduct>("save", function (next) {
   }
 });
 
+// Index for geospatial queries
+ProductSchema.index({ location: '2dsphere' });
+// Index for text search
+ProductSchema.index({ title: 'text', description: 'text' });
+
 export default mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);
