@@ -1,4 +1,4 @@
-@echo off
+echo off
 echo Deleting old Git history...
 rmdir /s /q .git
 
