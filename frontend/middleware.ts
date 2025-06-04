@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   // console.log('Middleware triggered for:', request.nextUrl.pathname);
   return NextResponse.next()
 }
-
+// Middleware is a way to run code before a request is completed.
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: [
