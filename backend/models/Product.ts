@@ -7,19 +7,19 @@ interface IAuctionBid {
 }
 
 interface IShippingOption {
-  method: string; // e.g., "Local Pickup", "Courier", "Freight"
+  method: string;
   cost: number;
   estimatedDeliveryDays?: number;
 }
 
 export interface IProduct extends Document {
-  sellerId: Types.ObjectId; // Reference to User
+  sellerId: Types.ObjectId;
   title: string;
   description: string;
   category: string;
   subcategory?: string;
-  images: string[]; // URLs or storage pointers
-  price?: number; // For fixed-price listings
+  images: string[];
+  price?: number;
   isAuction: boolean;
   auctionDetails?: {
     minimumBid: number;
@@ -27,34 +27,36 @@ export interface IProduct extends Document {
     startTime: Date;
     endTime: Date;
     currentHighestBid?: number;
-    currentHighestBidder?: Types.ObjectId; // Reference to User
+    currentHighestBidder?: Types.ObjectId;
     bidCount?: number;
-    bids?: IAuctionBid[]; // Embed recent bids or store in separate collection
+    bids?: IAuctionBid[];
   };
   condition: "New" | "Like New" | "Good" | "Fair" | "Poor" | "Used – Acceptable";
   brand?: string;
-  model?: string;
+  productModel?: string;
   material?: string;
-  location: {
+  color?: string;
+  year?: number;
+  location?: {
     city?: string;
     state?: string;
     country?: string;
-    coordinates?: [number, number]; // [longitude, latitude]
-    addressText?: string; // For simpler address input
+    coordinates?: [number, number];
+    addressText?: string;
   };
   shippingOptions?: IShippingOption[];
   listingType: "fixed" | "auction";
-  status: "active" | "sold" | "closed" | "deleted" | "pending_approval"; // Added pending_approval
+  status: "active" | "sold" | "closed" | "deleted" | "pending_approval";
   viewCount?: number;
   tags?: string[];
   likes?: number;
-  watchCount?: number; // Number of users watching this auction/listing
-  sellerRatingAvg?: number; // Denormalized
-  sellerRatingCount?: number; // Denormalized
-  originalPackaging?: boolean; // From existing schema
-  manualIncluded?: boolean; // From existing schema
-  workingCondition?: string; // From existing schema
-  quantity: number; // From existing schema
+  watchCount?: number;
+  sellerRatingAvg?: number;
+  sellerRatingCount?: number;
+  originalPackaging?: boolean;
+  manualIncluded?: boolean;
+  workingCondition?: string;
+  quantity: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -86,7 +88,7 @@ const ProductSchema = new Schema<IProduct>(
         message: "Please provide at least one image",
       },
     },
-    price: { type: Number, min: [0, "Price must be at least 0"] }, // Not required if isAuction is true
+    price: { type: Number, min: [0, "Price must be at least 0"] },
     isAuction: { type: Boolean, default: false },
     auctionDetails: {
       minimumBid: { type: Number, min: [0, "Minimum bid must be at least 0"] },
@@ -96,7 +98,7 @@ const ProductSchema = new Schema<IProduct>(
       currentHighestBid: Number,
       currentHighestBidder: { type: Schema.Types.ObjectId, ref: "User" },
       bidCount: { type: Number, default: 0 },
-      bids: [AuctionBidSchema], // Consider separate collection for high volume
+      bids: [AuctionBidSchema],
     },
     condition: {
       type: String,
@@ -104,13 +106,15 @@ const ProductSchema = new Schema<IProduct>(
       enum: ["New", "Like New", "Good", "Fair", "Poor", "Used – Acceptable"],
     },
     brand: String,
-    model: String,
+    productModel: String,
     material: String,
+    color: String,
+    year: Number,
     location: {
       city: String,
       state: String,
       country: String,
-      coordinates: { type: [Number], index: "2dsphere" }, // [longitude, latitude]
+      coordinates: { type: [Number], index: "2dsphere" },
       addressText: String,
     },
     shippingOptions: [ShippingOptionSchema],
@@ -140,7 +144,7 @@ ProductSchema.pre<IProduct>("save", function (next) {
     if (!this.auctionDetails || !this.auctionDetails.minimumBid || !this.auctionDetails.startTime || !this.auctionDetails.endTime) {
       next(new Error("Auction details (minimumBid, startTime, endTime) are required for auction listings."));
     } else {
-      this.price = undefined; // Ensure price is not set for auctions
+      this.price = undefined;
       this.listingType = "auction";
       next();
     }
@@ -148,7 +152,7 @@ ProductSchema.pre<IProduct>("save", function (next) {
     if (typeof this.price !== 'number' || this.price < 0) {
       next(new Error("Price is required for fixed-price listings."));
     } else {
-      this.auctionDetails = undefined; // Ensure auctionDetails are not set for fixed price
+      this.auctionDetails = undefined;
       this.listingType = "fixed";
       next();
     }
