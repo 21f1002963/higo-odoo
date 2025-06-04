@@ -13,6 +13,8 @@ import { connectToDatabase } from "@/lib/mongodb"
 import User from "@/models/User"
 import Cart from "@/models/Cart"
 
+// Cart comment
+
 async function getUserCart(userId: string) {
   try {
     await connectToDatabase()
