@@ -3,7 +3,9 @@ import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   username: string;
+  name: string;
   email: string;
+  phone: string;
   password: string;
   profilePicture?: string;
   bio?: string;
@@ -19,6 +21,11 @@ export interface IUser extends Document {
     timestamp: Date;
   }>;
   savedProducts: mongoose.Types.ObjectId[];
+  otp?: string;
+  otpExpires?: Date;
+  phoneVerified?: boolean;
+  emailVerified?: boolean;
+  isVerified?: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -26,7 +33,9 @@ export interface IUser extends Document {
 
 const UserSchema: Schema = new Schema({
   username: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  phone: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   profilePicture: { type: String },
   bio: { type: String },
@@ -41,7 +50,12 @@ const UserSchema: Schema = new Schema({
     comment: { type: String },
     timestamp: { type: Date, default: Date.now }
   }],
-  savedProducts: [{ type: Schema.Types.ObjectId, ref: 'Product' }]
+  savedProducts: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
+  otp: { type: String },
+  otpExpires: { type: Date },
+  phoneVerified: { type: Boolean, default: false },
+  emailVerified: { type: Boolean, default: false },
+  isVerified: { type: Boolean, default: false }
 }, { timestamps: true });
 
 // Index for geospatial queries

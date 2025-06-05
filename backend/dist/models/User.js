@@ -32,17 +32,55 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const UserSchema = new mongoose_1.Schema({
+    username: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    isVerified: { type: Boolean, default: false },
-    emailVerified: { type: Boolean, default: false },
-    phoneVerified: { type: Boolean, default: false },
+    profilePicture: { type: String },
+    bio: { type: String },
+    location: {
+        type: { type: String, default: 'Point' },
+        coordinates: { type: [Number], default: [0, 0] }
+    },
+    rating: { type: Number, default: 0 },
+    reviews: [{
+            reviewer: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+            rating: { type: Number, required: true },
+            comment: { type: String },
+            timestamp: { type: Date, default: Date.now }
+        }],
+    savedProducts: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Product' }],
     otp: { type: String },
     otpExpires: { type: Date },
+    phoneVerified: { type: Boolean, default: false },
+    emailVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false }
 }, { timestamps: true });
+// Index for geospatial queries
+UserSchema.index({ location: '2dsphere' });
+// Hash password before saving
+UserSchema.pre('save', async function (next) {
+    if (!this.isModified('password'))
+        return next();
+    try {
+        const salt = await bcryptjs_1.default.genSalt(10);
+        this.password = await bcryptjs_1.default.hash(this.password, salt);
+        next();
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// Method to compare password
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+    return bcryptjs_1.default.compare(candidatePassword, this.password);
+};
 exports.default = mongoose_1.default.model('User', UserSchema);
