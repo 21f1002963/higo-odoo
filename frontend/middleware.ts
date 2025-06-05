@@ -9,12 +9,9 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Protects all routes, including api/trpc.
-  // See https://clerk.com/docs/references/nextjs/auth-middleware
-  // for more information about configuring your Middleware
+  // This configuration can be adjusted when JWT authentication is implemented.
   matcher: [
-    "/((?!.+\\.[\w]+$|_next).*)", // Match all routes except static files and _next internals
-    "/", // Match the root route explicitly
-    "/(api|trpc)(.*)" // Match all API routes
+    "/((?!api|_next/static|_next/image|favicon.ico).*)", // Exclude API, static files, images, and favicon
+    "/(api|trpc)(.*)" // Match all API routes for potential future protection
   ],
 };
