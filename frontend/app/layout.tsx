@@ -1,12 +1,17 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter as FontSans } from "next/font/google"
 import "../styles/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/layout/navbar"
 import { AuthProvider } from "@/contexts/AuthContext"
+import { cn } from "@/lib/utils"
 
-const inter = Inter({ subsets: ["latin"] })
+const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "EcoFinds - Sustainable Second-Hand Marketplace",
@@ -25,7 +30,10 @@ export default function RootLayout({
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
         </head>
-        <body className={`${inter.className} antialiased`}>
+        <body className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable
+        )}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             <div className="relative flex min-h-screen flex-col bg-background">
               <Navbar />

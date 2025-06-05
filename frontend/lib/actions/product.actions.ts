@@ -1,3 +1,5 @@
+import { apiClient } from '../api-client';
+
 // Placeholder for product actions
 
 interface ProductSearchParams {
@@ -42,54 +44,48 @@ export interface Product {
   };
 }
 
-// Mock implementation, replace with actual API calls
 export async function getProducts(searchParams: ProductSearchParams): Promise<Product[]> {
-  console.log("Fetching products with params:", searchParams);
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 500)); 
-
-  // Return mock product data similar to what's in app/products/page.tsx for consistency
-  const mockProductsData: Product[] = [
-    { id: '1', title: 'Vintage Leather Jacket', price: 120, category: {id: 'cat1', name: 'Clothing' }, images: ['https://via.placeholder.com/300x200.png?text=Jacket'], condition: 'good' },
-    { id: '2', title: 'Antique Wooden Chair', price: 75, category: { id: 'cat2', name: 'Furniture' }, images: ['https://via.placeholder.com/300x200.png?text=Chair'], condition: 'fair' },
-    { id: '3', title: 'Retro Gaming Console', price: 200, category: {id: 'cat3', name: 'Electronics' }, images: ['https://via.placeholder.com/300x200.png?text=Console'], condition: 'like_new' },
-  ];
-  return mockProductsData;
+  return apiClient.getProducts(searchParams);
 }
 
 export async function getProductById(productId: string): Promise<Product | null> {
-  console.log("Fetching product with ID:", productId);
-  await new Promise(resolve => setTimeout(resolve, 300));
-  const mockProduct: Product = {
-    id: productId,
-    title: `Sample Product ${productId}`,
-    description: "This is a detailed description of the sample product. It is of excellent quality and has been well-maintained. Ideal for collectors or everyday use.",
-    price: Math.floor(Math.random() * 200) + 50,
-    category: { id: 'cat_sample', name: 'Sample Category' },
-    images: [
-      'https://via.placeholder.com/600x400.png?text=Product+View+1',
-      'https://via.placeholder.com/600x400.png?text=Product+View+2',
-      'https://via.placeholder.com/600x400.png?text=Product+View+3'
-    ],
-    condition: "good",
-    seller: {
-      id: "seller123",
-      username: "SuperSeller",
-      profilePictureUrl: "https://via.placeholder.com/100x100.png?text=Seller",
-      rating: 4.8,
-      location: "Cityville, ST"
-    },
-    postedAt: new Date().toISOString(),
-    isAuction: Math.random() > 0.7, // Randomly make it an auction item
-    auctionDetails: {
-      minimumBid: 50,
-      auctionEndTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Ends in 1 day
-      currentHighestBid: Math.random() > 0.5 ? Math.floor(Math.random() * 100) + 50 : undefined,
-      totalBids: Math.floor(Math.random() * 20),
+  try {
+    return await apiClient.getProductById(productId);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('404')) {
+      return null;
     }
-  };
-  if (productId === "notfound") return null;
-  return mockProduct;
+    throw error;
+  }
+}
+
+export async function createProduct(product: Omit<Product, 'id'>): Promise<Product> {
+  return apiClient.createProduct(product);
+}
+
+export async function updateProduct(id: string, product: Partial<Product>): Promise<Product> {
+  return apiClient.updateProduct(id, product);
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  return apiClient.deleteProduct(id);
+}
+
+export async function placeBid(productId: string, amount: number): Promise<{ bidId: string }> {
+  return apiClient.placeBid(productId, amount);
+}
+
+export async function getBids(productId: string): Promise<{
+  bids: Array<{
+    bidderId: string;
+    bidderUsername: string;
+    amount: number;
+    timestamp: string;
+  }>;
+  currentHighestBid: number;
+  totalBids: number;
+}> {
+  return apiClient.getBids(productId);
 }
 
 // Add other product-related actions here (create, update, delete) as per API_DOCUMENTATION.md 
