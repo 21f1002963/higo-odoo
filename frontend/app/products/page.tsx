@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ProductCategoryFilter } from "@/components/ui/product-category-filter"
+// import { ProductCategoryFilter } from "@/components/ui/product-category-filter"
 import { cn } from "@/lib/utils"
-import ProductFilters from "@/components/product-filters"
+// import ProductFilters from "@/components/product-filters"
 
 interface Product {
   id: string;
@@ -31,8 +31,11 @@ async function getProducts(searchParams: { category?: string; search?: string })
       params.append("search", searchParams.search)
     }
 
-    // Remove baseUrl and use relative path for server-side fetch
-    const res = await fetch(`/api/products?${params.toString()}`, {
+    const queryString = params.toString();
+    const apiUrl = queryString ? `/api/products?${queryString}` : "/api/products";
+
+    // Use relative URL
+    const res = await fetch(apiUrl, {
       cache: "no-store",
     })
 
